@@ -15,8 +15,28 @@ namespace iTable_V2.Controllers
         {
             _context = context;
         }
-        //
+        //11/21改動
         // GET 方法: 用於載入訂位頁面並顯示資料+UserID
+        //public async Task<IActionResult> BookingPage(int? restaurantID)
+        //{
+        //    if (!restaurantID.HasValue)
+        //    {
+        //        return NotFound(); // 如果 restaurantID 是 null，返回 404
+        //    }
+
+        //    // 使用 GetInt32 讀取 UserID
+        //    var userID = HttpContext.Session.GetInt32("UserID");
+
+        //    // 從資料庫讀取相關資料並傳遞給視圖
+        //    var viewModel = await GetBookingPageViewModel(restaurantID.Value);
+
+        //    // 將 UserID 傳遞給視圖模型
+        //    viewModel.UserID = userID;
+
+        //    return View(viewModel);
+        //}
+
+        //1121新bookingpage
         public async Task<IActionResult> BookingPage(int? restaurantID)
         {
             if (!restaurantID.HasValue)
@@ -24,11 +44,30 @@ namespace iTable_V2.Controllers
                 return NotFound(); // 如果 restaurantID 是 null，返回 404
             }
 
+            // 從資料庫檢索餐廳資訊
+            var restaurant = await _context.Restaurants
+                                           .Where(r => r.RestaurantID == restaurantID.Value)
+                                           .Select(r => new { r.RestaurantID, r.IsReservationOpen })
+                                           .FirstOrDefaultAsync();
+
+            if (restaurant == null)
+            {
+                return NotFound(); // 如果餐廳不存在，返回 404
+            }
+
+            // 確認餐廳是否開放訂位
+            if (!restaurant.IsReservationOpen) // 如果 IsReservationOpen 是 bool，直接判斷
+            {
+                // 如果餐廳不開放訂位，返回一個視圖或顯示訊息
+                ViewBag.Message = "今日不開放訂位";
+                return View("ReservationClosed");
+            }
+
             // 使用 GetInt32 讀取 UserID
             var userID = HttpContext.Session.GetInt32("UserID");
 
             // 從資料庫讀取相關資料並傳遞給視圖
-            var viewModel = await GetBookingPageViewModel(restaurantID.Value);
+            var viewModel = await GetBookingPageViewModel(restaurant.RestaurantID);
 
             // 將 UserID 傳遞給視圖模型
             viewModel.UserID = userID;
@@ -37,19 +76,6 @@ namespace iTable_V2.Controllers
         }
 
 
-        //
-        // GET 方法: 用於載入訂位頁面並顯示資料
-        //public async Task<IActionResult> BookingPage(int? restaurantID)
-        //{
-        //    if (!restaurantID.HasValue)
-        //    {
-        //        return NotFound(); // 如果 restaurantID 是 null，返回 404
-        //    }
-
-        //    // 從資料庫讀取相關資料並傳遞給視圖
-        //    var viewModel = await GetBookingPageViewModel(restaurantID.Value);
-        //    return View(viewModel);
-        //}
 
         [HttpPost]
         public async Task<IActionResult> BookingPage(Reservation reservation)
@@ -185,6 +211,16 @@ namespace iTable_V2.Controllers
             }
 
             return viewModel;
+        }
+
+        public IActionResult ReservationClosed()
+        {
+            // 設定 ViewBag 訊息，傳遞給視圖
+            ViewBag.Title = "訂位關閉";
+            ViewBag.Message = "今日不開放訂位";
+
+            // 返回對應的視圖
+            return View();
         }
 
 
