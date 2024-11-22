@@ -215,7 +215,7 @@ namespace iTable_V2.Controllers
                     HttpContext.Session.SetInt32("UserID", user.UserID);
 
                     // 重定向到訂位頁面（暫時的URL）
-                    return Redirect("http://localhost:5169/Booking/BookingPage/1");
+                    return RedirectToAction("BookingPage", "Booking", new { restaurantID = 1 });
                 }
 
                 // 登入失敗，顯示錯誤訊息

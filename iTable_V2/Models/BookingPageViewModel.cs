@@ -17,5 +17,7 @@
 
         // 新增 UserID 屬性
         public int? UserID { get; set; }
+        // 新增 PhotoUrl 屬性
+        public string? PhotoUrl { get; set; }
     }
 }

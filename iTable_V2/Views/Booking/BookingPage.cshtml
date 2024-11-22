@@ -31,7 +31,14 @@
                     @ViewData["RestaurantName"]
                 </h1>
                 <div class="restaurantImage">
-                    <img src="uma.jpeg" alt="餐廳封面圖片">
+                    @if (!string.IsNullOrEmpty(Model.PhotoUrl))
+                    {
+                        <img src="@Model.PhotoUrl" alt="餐廳封面圖片">
+                    }
+                    else
+                    {
+                        <img src="default-image.jpg" alt="餐廳封面圖片">
+                    }
                 </div>
                 <br>
             </div>
@@ -124,17 +131,17 @@
                     <legend class="text-center mb-4">訂位人資訊</legend>
 
                     <div class="form-floating mb-3">
-                        <input type="text" class="form-control" id="customerName" name="BookerName" placeholder="訂位人姓名" required>
+                        <input type="text" class="form-control" id="customerName" name="BookerName" value="@ViewBag.Name" required>
                         <label for="customerName">訂位人姓名</label>
                     </div>
 
                     <div class="form-floating mb-3">
-                        <input type="tel" class="form-control" id="phoneNumber" name="BookerPhone" placeholder="電話號碼" pattern="^\d{8,}$" required>
+                        <input type="tel" class="form-control" id="phoneNumber" name="BookerPhone" pattern="^\d{8,}$" value="@ViewBag.ContactPhone" required>
                         <label for="phoneNumber">電話號碼</label>
                     </div>
 
                     <div class="form-floating mb-3">
-                        <input type="email" class="form-control" id="email" name="BookerEmail" placeholder="Email">
+                        <input type="email" class="form-control" id="email" name="BookerEmail" value="@ViewBag.ContactEmail" required>
                         <label for="email">Email</label>
                     </div>
 

@@ -15,28 +15,10 @@ namespace iTable_V2.Controllers
         {
             _context = context;
         }
-        //11/21改動
-        // GET 方法: 用於載入訂位頁面並顯示資料+UserID
-        //public async Task<IActionResult> BookingPage(int? restaurantID)
-        //{
-        //    if (!restaurantID.HasValue)
-        //    {
-        //        return NotFound(); // 如果 restaurantID 是 null，返回 404
-        //    }
 
-        //    // 使用 GetInt32 讀取 UserID
-        //    var userID = HttpContext.Session.GetInt32("UserID");
-
-        //    // 從資料庫讀取相關資料並傳遞給視圖
-        //    var viewModel = await GetBookingPageViewModel(restaurantID.Value);
-
-        //    // 將 UserID 傳遞給視圖模型
-        //    viewModel.UserID = userID;
-
-        //    return View(viewModel);
-        //}
 
         //1121新bookingpage
+        // GET 方法: 用於載入訂位頁面並顯示資料、帶入UserID、判定IsReservationOpen、預先帶入用戶資料
         public async Task<IActionResult> BookingPage(int? restaurantID)
         {
             if (!restaurantID.HasValue)
@@ -66,11 +48,43 @@ namespace iTable_V2.Controllers
             // 使用 GetInt32 讀取 UserID
             var userID = HttpContext.Session.GetInt32("UserID");
 
+            if (userID.HasValue)
+            {
+                // 從 Users 資料表取得 UserName、ContactPhone 和 ContactEmail
+                var user = await _context.Users
+                                         .Where(u => u.UserID == userID.Value)
+                                         .Select(u => new
+                                         {
+                                             u.Name,
+                                             u.ContactPhone,
+                                             u.ContactEmail
+                                         })
+                                         .FirstOrDefaultAsync();
+
+                // 如果找到用戶，將資料傳遞到視圖的 ViewBag
+                if (user != null)
+                {
+                    ViewBag.Name = user.Name;
+                    ViewBag.ContactPhone = user.ContactPhone;
+                    ViewBag.ContactEmail = user.ContactEmail;
+                }
+            }
+
+            // 從 Photos 資料表取得對應的照片 URL
+            var photoUrl = await _context.Photos
+                                          .Where(p => p.RestaurantId == restaurantID.Value)
+                                          .Select(p => p.PhotoUrl)
+                                          .FirstOrDefaultAsync();
+
             // 從資料庫讀取相關資料並傳遞給視圖
             var viewModel = await GetBookingPageViewModel(restaurant.RestaurantID);
 
+            // 將照片 URL 傳遞給視圖模型
+            viewModel.PhotoUrl = photoUrl;
+
             // 將 UserID 傳遞給視圖模型
             viewModel.UserID = userID;
+
 
             return View(viewModel);
         }
